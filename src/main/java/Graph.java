@@ -10,9 +10,10 @@ public class Graph {
     public void databaseStatistics() {
         System.out.println(graphDatabase.runCypher("MATCH (n)\n" +
                 "OPTIONAL MATCH (n)-[r]->(x)\n" +
-                "WITH DISTINCT {l1: labels(n), r: type(r), l2: labels(x)}\n" +
-                "AS `first degree connection`\n" +
-                "RETURN first degree connection;"));
+                "WITH DISTINCT {node1: labels(n), r: type(r), node2: labels(x)}\n" +
+                "AS `Relations_between_nodes`\n" +
+                "RETURN Relations_between_nodes"));
+        System.out.printf(graphDatabase.runCypher("CALL db.schema()"));
         System.out.println(graphDatabase.runCypher("CALL db.labels()"));
         System.out.println(graphDatabase.runCypher("CALL db.relationshipTypes()"));
     }
@@ -21,6 +22,14 @@ public class Graph {
         return graphDatabase.runCypher("MATCH (n)\n" +
                 "OPTIONAL MATCH (n)-[r]-()\n" +
                 "DELETE n,r");
+    }
+
+    public String allRelationshipsForNode(Node node){
+        return null;
+    }
+
+    public String pathBetweenNodes(Node node1, Node node2){
+        return null;
     }
 
     public void createData(){
