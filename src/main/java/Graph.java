@@ -8,33 +8,45 @@ public class Graph {
     private final GraphDatabase graphDatabase = GraphDatabase.createDatabase();
 
     public void databaseStatistics() {
+        System.out.printf(graphDatabase.runCypher("CALL db.schema()"));
+        System.out.println(graphDatabase.runCypher("CALL db.labels()"));
+        System.out.println(graphDatabase.runCypher("CALL db.relationshipTypes()"));
         System.out.println(graphDatabase.runCypher("MATCH (n)\n" +
                 "OPTIONAL MATCH (n)-[r]->(x)\n" +
                 "WITH DISTINCT {node1: labels(n), r: type(r), node2: labels(x)}\n" +
                 "AS `Relations_between_nodes`\n" +
                 "RETURN Relations_between_nodes"));
-        System.out.printf(graphDatabase.runCypher("CALL db.schema()"));
-        System.out.println(graphDatabase.runCypher("CALL db.labels()"));
-        System.out.println(graphDatabase.runCypher("CALL db.relationshipTypes()"));
     }
 
-    public String deleteAllData(){
+    public String deleteAllData() {
         return graphDatabase.runCypher("MATCH (n)\n" +
                 "OPTIONAL MATCH (n)-[r]-()\n" +
                 "DELETE n,r");
     }
 
-    public String allRelationshipsForNode(Node node){
-        return null;
+    public String allRelationshipsForNodeByName(String label, String name) {
+        return graphDatabase.runCypher(String.format("MATCH (n:%s {name: '%s'})-[r]-(m) RETURN r,n,m", label, name));
     }
 
-    public String pathBetweenNodes(Node node1, Node node2){
-        return null;
+    public String allRelationshipsForNodeByID(int id) {
+        return graphDatabase.runCypher(String.format("MATCH (n)-[r]-(m) WHERE ID(n) = %d RETURN r,n,m", id));
     }
 
-    public void createData(){
+    public String pathBetweenNodesByName(String label1, String name1, String label2, String name2) {
+        return graphDatabase.runCypher(String.format("MATCH (n:%s), (m:%s), p=shortestPath((n)-[*..]-(m)) " +
+                "WHERE n.name = \"%s\" AND m.name = \"%s\" " +
+                "RETURN p",label1, label2, name1, name2));
+    }
+
+    public String pathBetweenNodesByID(int node1ID, int node2ID) {
+        return graphDatabase.runCypher(String.format("MATCH (n), (m), p=shortestPath((n)-[*..]-(m)) " +
+                "WHERE ID(n) = %d AND ID(m) = %d " +
+                "RETURN p",node1ID, node2ID));
+    }
+
+    public void createData() {
         GraphDatabaseService graph = graphDatabase.getGraphDatabaseService();
-        try(Transaction transaction = graph.beginTx()){
+        try (Transaction transaction = graph.beginTx()) {
 
             //Regions
             Node kanto = createRegion(graph, "Kanto", "Oak", "Team Rocket");
@@ -62,26 +74,18 @@ public class Graph {
             Node bulbasaur = createPokemon(graph, "Bulbasaur", "grass", 44.2);
             Node charmander = createPokemon(graph, "Charmander", "fire", 55.6);
             Node squirtle = createPokemon(graph, "Squirtle", "water", 52.2);
-
-            //brak
-
             Node chikorita = createPokemon(graph, "Chikorita", "grass", 42.5);
             Node totodile = createPokemon(graph, "Totodile", "water", 40.2);
             Node skuntank = createPokemon(graph, "Skuntank", "poison", 22.5);
-
             Node mudkip = createPokemon(graph, "Mudkip", "water", 32.2);
             Node torchic = createPokemon(graph, "Torchic", "fire", 18.2);
-
             Node metagross = createPokemon(graph, "Metagross", "rock", 734.3);
             Node gible = createPokemon(graph, "Gible", "rock", 73.3);
-
             Node oshawoot = createPokemon(graph, "Oshawott", "water", 53.3);
             Node landours = createPokemon(graph, "Landorus", "ground", 152.2);
             Node cottonee = createPokemon(graph, "Cottonee", "fairy", 12.6);
-
             Node chespin = createPokemon(graph, "Chespin", "grass", 22.2);
             Node fennkein = createPokemon(graph, "Fennekin", "fire", 24.2);
-
             Node wingull = createPokemon(graph, "Wingull", "flying", 30.0);
 
             //Relations
@@ -157,7 +161,7 @@ public class Graph {
         }
     }
 
-    private Node createPokemon(GraphDatabaseService gdb, String name, String type, double weight){
+    private Node createPokemon(GraphDatabaseService gdb, String name, String type, double weight) {
         Node pokemon = gdb.createNode();
         pokemon.addLabel(() -> "Pokemon");
         pokemon.setProperty("name", name);
@@ -166,7 +170,7 @@ public class Graph {
         return pokemon;
     }
 
-    private Node createTrainer(GraphDatabaseService gdb, String name, String lastName, int age, String gender){
+    private Node createTrainer(GraphDatabaseService gdb, String name, String lastName, int age, String gender) {
         Node trainer = gdb.createNode();
         trainer.addLabel(() -> "Trainer");
         trainer.setProperty("name", name);
@@ -176,7 +180,7 @@ public class Graph {
         return trainer;
     }
 
-    private Node createRegion(GraphDatabaseService gdb, String name, String professor, String regionVillains){
+    private Node createRegion(GraphDatabaseService gdb, String name, String professor, String regionVillains) {
         Node region = gdb.createNode();
         region.addLabel(() -> "Region");
         region.setProperty("name", name);
@@ -185,20 +189,22 @@ public class Graph {
         return region;
     }
 
-    private void createLivesRelationship(Node pokemon, Node region){
+    private void createLivesRelationship(Node pokemon, Node region) {
         pokemon.createRelationshipTo(region, RelationshipType.withName("LIVES"));
     }
-    private void createComesRelationship(Node trainer, Node region){
+
+    private void createComesRelationship(Node trainer, Node region) {
         trainer.createRelationshipTo(region, RelationshipType.withName("COMES"));
     }
-    private void createHaveRelationship(Node trainer, Node pokemon){
+
+    private void createHaveRelationship(Node trainer, Node pokemon) {
         trainer.createRelationshipTo(pokemon, RelationshipType.withName("HAVE"));
     }
-    private void createKnowsRelationship(Node trainer1, Node trainer2){
+
+    private void createKnowsRelationship(Node trainer1, Node trainer2) {
         trainer1.createRelationshipTo(trainer2, RelationshipType.withName("KNOWS"));
         trainer2.createRelationshipTo(trainer1, RelationshipType.withName("KNOWS"));
     }
-
 
 
 }
