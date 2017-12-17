@@ -42,4 +42,9 @@ public final class GraphDatabase {
         }
     }
 
+    public GraphDatabaseService getGraphDatabaseService() {
+        return graphDatabaseService;
+    }
+
+
 }

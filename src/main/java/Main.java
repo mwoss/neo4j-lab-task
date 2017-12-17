@@ -1,6 +1,8 @@
 public class Main {
 
     public static void main(String[] args) {
-        GraphDatabase.createDatabase();
+        Graph graph = new Graph();
+        graph.deleteAllData();
+        graph.databaseStatistics();
     }
 }
