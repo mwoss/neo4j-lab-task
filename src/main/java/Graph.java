@@ -31,6 +31,9 @@ public class Graph {
     public String allRelationshipsForNodeByID(int id) {
         return graphDatabase.runCypher(String.format("MATCH (n)-[r]-(m) WHERE ID(n) = %d RETURN r,n,m", id));
     }
+    public String allRelationshipsForNodeByNamedAttribute(String label, String attribute, String value){
+        return graphDatabase.runCypher(String.format("MATCH (n:%s {%s: '%s'})-[r]-(m) RETURN r,n,m", label, attribute, value));
+    }
 
     public String pathBetweenNodesByName(String label1, String name1, String label2, String name2) {
         return graphDatabase.runCypher(String.format("MATCH (n:%s), (m:%s), p=shortestPath((n)-[*..]-(m)) " +
